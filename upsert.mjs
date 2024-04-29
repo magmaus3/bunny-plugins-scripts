@@ -1,7 +1,7 @@
 import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
-import { exec as cbExec } from "child_process";
+import { exec as cbExec, execSync } from "child_process";
 const exec = promisify(cbExec);
 
 const writeSummary = (text) => fs.appendFile(process.env.GITHUB_STEP_SUMMARY, text);
@@ -34,11 +34,20 @@ for (const pl of inputs) {
     if (!jReq.ok) throw `Bundle request returned non-ok status code ${jReq.status}`;
     const js = await jReq.text();
 
+    let pluginPage
+    await fs.readFile("../scripts/plugin-page.html", "utf8").then((data) => {
+        pluginPage = data;
+    })
+
+    pluginPage = pluginPage.replace("${name}", manifest.name)
+    pluginPage = pluginPage.replace("${description}", manifest.description)
+
     await fs.mkdir(source, { recursive: true });
 
     await fs.writeFile(path.join(source, "index.js"), js);
     await fs.writeFile(path.join(source, "manifest.json"), JSON.stringify(manifest));
-
+    await fs.writeFile(path.join(source, "index.html"), pluginPage);
+    
     /** @type any[] */
     let plugins = JSON.parse(await fs.readFile("plugins-full.json", "utf8"));
     const index = plugins.findIndex((p) => p.vendetta.original === source);
