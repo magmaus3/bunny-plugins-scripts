@@ -39,8 +39,9 @@ for (const pl of inputs) {
         pluginPage = data;
     })
 
-    pluginPage = pluginPage.replace("${name}", manifest.name)
-    pluginPage = pluginPage.replace("${description}", manifest.description)
+    pluginPage = pluginPage.replaceAll("${name}", manifest.name)
+    pluginPage = pluginPage.replaceAll("${description}", manifest.description)
+    pluginPage = pluginPage.replaceAll("${source}", source)
 
     await fs.mkdir(source, { recursive: true });
 
